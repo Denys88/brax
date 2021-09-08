@@ -140,6 +140,6 @@ class NormalDistribution(ParametricDistribution):
 
   def create_dist(self, parameters):
     loc, scale = jnp.split(parameters, 2, axis=-1)
-    scale = jax.nn.exp(scale)
+    scale = jax.numpy.exp(scale)
     dist = tfd.Normal(loc=loc, scale=scale)
     return dist

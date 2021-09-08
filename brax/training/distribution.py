@@ -121,3 +121,26 @@ class NormalTanhDistribution(ParametricDistribution):
     scale = jax.nn.softplus(scale) + self._min_std
     dist = tfd.Normal(loc=loc, scale=scale)
     return dist
+
+class NormalDistribution(ParametricDistribution):
+  """Normal distribution followed by tanh."""
+
+  def __init__(self, event_size):
+    """Initialize the distribution.
+
+    Args:
+      event_size: the size of events (i.e. actions).
+      min_std: minimum std for the gaussian.
+    """
+    super().__init__(
+        param_size=2 * event_size,
+        postprocessor=tfp.identity(),
+        event_ndims=1,
+        reparametrizable=True)
+    self._min_std = min_std
+
+  def create_dist(self, parameters):
+    loc, scale = jnp.split(parameters, 2, axis=-1)
+    scale = jax.nn.exp(scale)
+    dist = tfd.Normal(loc=loc, scale=scale)
+    return dist

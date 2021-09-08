@@ -238,7 +238,7 @@ def train(
       episode_length=episode_length)
   eval_first_state, eval_step_fn = env.wrap(core_eval_env, key_eval)
 
-  parametric_action_distribution = distribution.NormalTanhDistribution(
+  parametric_action_distribution = distribution.NormalDistribution(
       event_size=core_env.action_size)
 
   policy_model, value_model = networks.make_models(
@@ -278,7 +278,8 @@ def train(
         jax.tree_map(lambda x: x[0], normalizer_params), state.core.obs)
     logits = policy_model.apply(policy_params, obs)
     actions = parametric_action_distribution.sample(logits, key_sample)
-    nstate = eval_step_fn(state, actions)
+    clipped_actions = jnp.clip(actions, -1, 1)
+    nstate = eval_step_fn(state, clipped_actions)
     return (nstate, policy_params, normalizer_params, key), ()
 
   @jax.jit
@@ -298,7 +299,8 @@ def train(
     actions = parametric_action_distribution.sample_no_postprocessing(
         logits, key_sample)
     postprocessed_actions = parametric_action_distribution.postprocess(actions)
-    nstate = step_fn(state, postprocessed_actions)
+    clipped_actions = jnp.clip(postprocessed_actions, -1, 1)
+    nstate = step_fn(state, clipped_actions)
     return (nstate, normalizer_params, policy_params, key), StepData(
         obs=state.core.obs,
         rewards=state.core.reward,
@@ -473,7 +475,7 @@ def make_params_and_inference_fn(observation_size, action_size,
   """Creates params and inference function for the PPO agent."""
   obs_normalizer_params, obs_normalizer_apply_fn = normalization.make_data_and_apply_fn(
       observation_size, normalize_observations)
-  parametric_action_distribution = distribution.NormalTanhDistribution(
+  parametric_action_distribution = distribution.NormalDistribution(
       event_size=action_size)
   policy_model, _ = networks.make_models(
       parametric_action_distribution.param_size,

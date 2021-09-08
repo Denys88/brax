@@ -134,7 +134,7 @@ class NormalDistribution(ParametricDistribution):
     """
     super().__init__(
         param_size=2 * event_size,
-        postprocessor=tfp.identity(),
+        postprocessor=tfp.bijectors.Identity(),
         event_ndims=1,
         reparametrizable=True)
     self._min_std = min_std

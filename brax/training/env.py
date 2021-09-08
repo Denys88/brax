@@ -45,7 +45,7 @@ def wrap(core_env: envs.Env, rng: jnp.ndarray) -> Tuple[EnvState, StepFn]:
   first_core.metrics['reward'] = first_core.reward
 
   def step(state: EnvState, action: Action) -> EnvState:
-    core = core_env.step(state.core, action)
+    core = core_env.step(state.core, jnp.clip(action, -1, 1))
     core.metrics['reward'] = core.reward
     # This must be run before test_done in order not to override .steps.
     completed_episodes_steps = state.completed_episodes_steps + jnp.sum(

@@ -278,8 +278,7 @@ def train(
         jax.tree_map(lambda x: x[0], normalizer_params), state.core.obs)
     logits = policy_model.apply(policy_params, obs)
     actions = parametric_action_distribution.sample(logits, key_sample)
-    clipped_actions = jnp.clip(actions, -1, 1)
-    nstate = eval_step_fn(state, clipped_actions)
+    nstate = eval_step_fn(state, actions)
     return (nstate, policy_params, normalizer_params, key), ()
 
   @jax.jit
@@ -299,8 +298,7 @@ def train(
     actions = parametric_action_distribution.sample_no_postprocessing(
         logits, key_sample)
     postprocessed_actions = parametric_action_distribution.postprocess(actions)
-    clipped_actions = jnp.clip(postprocessed_actions, -1, 1)
-    nstate = step_fn(state, clipped_actions)
+    nstate = step_fn(state, postprocessed_actions)
     return (nstate, normalizer_params, policy_params, key), StepData(
         obs=state.core.obs,
         rewards=state.core.reward,

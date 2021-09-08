@@ -137,7 +137,6 @@ class NormalDistribution(ParametricDistribution):
         postprocessor=tfp.bijectors.Identity(),
         event_ndims=1,
         reparametrizable=True)
-    self._min_std = min_std
 
   def create_dist(self, parameters):
     loc, scale = jnp.split(parameters, 2, axis=-1)
